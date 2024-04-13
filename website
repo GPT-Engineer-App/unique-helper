@@ -1,0 +1,85 @@
+import React, { useState } from "react";
+import { ChakraProvider, Box, VStack, Input, Button, Heading, Text, useToast, FormControl, FormLabel } from "@chakra-ui/react";
+import { FaSignInAlt, FaUserPlus } from "react-icons/fa";
+
+const Index = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(true);
+  const toast = useToast();
+
+  const apiUrl = "https://backengine-aqau.fly.dev";
+
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    const endpoint = isLoggingIn ? "/login" : "/signup";
+    const response = await fetch(`${apiUrl}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (isLoggingIn) {
+        toast({
+          title: "Login Successful",
+          description: `Access Token: ${data.accessToken}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Signup Successful",
+          description: "You can now log in with your credentials.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } else {
+      toast({
+        title: "Error",
+        description: data.error || "An error occurred. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  return (
+    <ChakraProvider>
+      <Box p={8} maxWidth="500px" borderWidth={1} borderRadius={8} boxShadow="lg" m="20px auto">
+        <Heading>{isLoggingIn ? "Login" : "Signup"}</Heading>
+        <form onSubmit={handleAuth}>
+          <VStack spacing={4} align="flex-start">
+            <FormControl isRequired>
+              <FormLabel htmlFor="email">Email</FormLabel>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel htmlFor="password">Password</FormLabel>
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </FormControl>
+            <Button leftIcon={isLoggingIn ? <FaSignInAlt /> : <FaUserPlus />} type="submit" colorScheme="teal" width="full">
+              {isLoggingIn ? "Login" : "Signup"}
+            </Button>
+          </VStack>
+        </form>
+        <Text align="center" my={4}>
+          {isLoggingIn ? "Don't have an account?" : "Already have an account?"}{" "}
+          <Button variant="link" colorScheme="teal" onClick={() => setIsLoggingIn(!isLoggingIn)}>
+            {isLoggingIn ? "Signup" : "Login"}
+          </Button>
+        </Text>
+      </Box>
+    </ChakraProvider>
+  );
+};
+
+export default Index;
